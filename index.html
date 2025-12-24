@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K1-K3 學位空缺查詢系統</title>
+    <!-- Awesome Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+    <style>
+        .element-hidden {
+            display: none !important;
+        }
+
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            min-height: 100vh;
+            padding: 16px;
+            color: #1f2937;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: #111827;
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        /* Year Selection Form */
+        .year-form {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .form-control {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-control label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .form-control input {
+            padding: 10px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 180px;
+        }
+
+        .form-control input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-control input.error {
+            border-color: #ef4444;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+
+        .data-section {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        /* Data Section Styles */
+        .data-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .data-header h2 {
+            color: #111827;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .data-header .subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .data-stats {
+            display: flex;
+            justify-content: space-around;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .stat-item {
+            text-align: center;
+            width: 100%
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4f46e5;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .accordion-container {
+            margin-top: 20px;
+        }
+
+        .location-group {
+            margin-bottom: 16px;
+        }
+
+        .location-header {
+            background: #4f46e5 !important;
+            color: white !important;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .location-content {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+        }
+
+        .location-header:hover {
+            background: #4338ca !important;
+        }
+
+        .facility-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .facility-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .facility-header {
+            background: #3da956;
+            color: white;
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .facility-header.active {
+            background: #f5c842;
+            color: black;
+        }
+
+        .facility-header i {
+            transition: transform 0.3s ease;
+        }
+
+        .facility-header.collapsed i {
+            transform: rotate(-90deg);
+        }
+
+        .facility-content {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #374151;
+            width: 180px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #6b7280;
+            word-break: break-word;
+        }
+
+        .info-value a {
+            color: #4f46e5;
+            text-decoration: none;
+        }
+
+        .info-value a:hover {
+            text-decoration: underline;
+        }
+
+        .vacancy-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 4px;
+        }
+
+        .vacancy-yes {
+            background: #10b981;
+            color: white;
+        }
+
+        .vacancy-no {
+            background: #ef4444;
+            color: white;
+        }
+
+        .vacancy-unknown {
+            background: #6b7280;
+            color: white;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+
+        .no-data i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.875rem;
+            padding: 20px;
+            margin-top: auto;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+                background: #4f46e5;
+            }
+
+            .container {
+                gap: 16px;
+            }
+
+            .header {
+                padding: 16px;
+                border-radius: 12px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .year-form {
+                padding: 15px;
+            }
+
+            .form-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            .form-control input {
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .data-section {
+                max-height: 400px;
+                padding: 15px;
+            }
+
+            .data-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .info-row {
+                flex-direction: column;
+                margin-bottom: 15px;
+            }
+
+            .info-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            .facility-header {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Desktop Enhancements */
+        @media (min-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+        }
+
+        /* Smooth Transitions */
+        * {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>K1-K3 學位空缺查詢系統</h1>
+            <p class="subtitle">教育局幼稚園學位空缺資訊查詢</p>
+        </header>
+
+        <section class="year-form">
+            <div class="form-group">
+                <div class="form-control">
+                    <label for="yearStart">起始年份</label>
+                    <input type="text" id="yearStart" placeholder="yyyy (如：2025)" minlength="4" maxlength="4"
+                        value="2025">
+                    <div id="yearStartError" class="error-message"></div>
+                </div>
+                <div class="form-control">
+                    <label for="yearEnd">結束年份</label>
+                    <input type="text" id="yearEnd" placeholder="yyyy (如：2026)" minlength="4" maxlength="4"
+                        value="2026">
+                    <div id="yearEndError" class="error-message"></div>
+                </div>
+                <button id="fetchDataBtn" class="btn">
+                    <i class="fas fa-search"></i>
+                    查詢學位空缺
+                </button>
+            </div>
+        </section>
+
+        <main class="main-content">
+            <section class="data-section">
+                <div class="data-header">
+                    <h2>幼稚園學位空缺列表</h2>
+                    <p class="subtitle">按地區分組顯示幼稚園 K1-K3 學位空缺情況</p>
+                </div>
+                <div class="data-stats">
+                    <div class="stat-item">
+                        <span id="total-schools" class="stat-value">0</span>
+                        <span class="stat-label">幼稚園</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="total-districts" class="stat-value">0</span>
+                        <span class="stat-label">地區</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="total-k1-vacancy" class="stat-value">0</span>
+                        <span class="stat-label">K1<br/>空缺</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="total-k2-vacancy" class="stat-value">0</span>
+                        <span class="stat-label">K2<br/>空缺</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="total-k3-vacancy" class="stat-value">0</span>
+                        <span class="stat-label">K3<br/>空缺</span>
+                    </div>
+                </div>
+                <div class="accordion-container" id="accordion-container">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>請輸入年份查詢學位空缺資訊</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>K1-K3 學位空缺查詢系統 | 資料來源: 香港教育局 | 最後更新: <span id="last-update-date">-</span></p>
+        </footer>
+    </div>
+
+    <script>
+        // 全局變量
+        let allSchools = [];
+        let currentDataDate = null;
+
+        // 初始化應用
+        document.addEventListener('DOMContentLoaded', function () {
+            // 設置默認年份
+            const currentYear = new Date().getFullYear();
+            document.getElementById('yearStart').value = currentYear;
+            document.getElementById('yearEnd').value = currentYear + 1;
+
+            // 添加事件監聽器
+            document.getElementById('fetchDataBtn').addEventListener('click', fetchData);
+
+            // 回車鍵提交
+            document.getElementById('yearStart').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') fetchData();
+            });
+            document.getElementById('yearEnd').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') fetchData();
+            });
+
+            document.getElementById('fetchDataBtn').click();
+        });
+
+        // 驗證年份輸入
+        function validateYearInput(year, fieldName) {
+            const yearPattern = /^\d{4}$/;
+            const errorElement = document.getElementById(`${fieldName}Error`);
+
+            if (!yearPattern.test(year)) {
+                errorElement.textContent = '請輸入4位數字的年份 (如: 2025)';
+                errorElement.classList.add('show');
+                return false;
+            }
+
+            const yearNum = parseInt(year);
+            if (yearNum < 2000 || yearNum > 2100) {
+                errorElement.textContent = '年份必須在 2000-2100 之間';
+                errorElement.classList.add('show');
+                return false;
+            }
+
+            errorElement.textContent = '';
+            errorElement.classList.remove('show');
+            return true;
+        }
+
+        async function fetchData() {
+            const yearStart = document.getElementById('yearStart').value.trim();
+            const yearEnd = document.getElementById('yearEnd').value.trim();
+            const btn = document.getElementById('fetchDataBtn');
+
+            // 驗證輸入
+            if (!validateYearInput(yearStart, 'yearStart') || !validateYearInput(yearEnd, 'yearEnd')) {
+                return;
+            }
+
+            // 檢查年份邏輯
+            if (parseInt(yearEnd) <= parseInt(yearStart)) {
+                document.getElementById('yearEndError').textContent = '結束年份必須大於起始年份';
+                document.getElementById('yearEndError').classList.add('show');
+                return;
+            }
+
+            // 構建 CSV URL
+            const yearEndShort = yearEnd.slice(2, 4);
+            const csvUrl = `https://www.edb.gov.hk/attachment/tc/edu-system/preprimary-kindergarten/kindergarten-k1-admission-arrangements/K1-K3_vacancy_information_tc_${yearStart}${yearEndShort}.csv`;
+            console.log(csvUrl)
+
+            // 顯示載入狀態
+            const container = document.getElementById('accordion-container');
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>正在載入 ${yearStart}-${yearEnd} 學年學位空缺資料...</p>
+                </div>
+            `;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 載入中...';
+
+            try {
+                const response = await fetch(csvUrl);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const csvText = await response.text();
+                parseCSVData(csvText);
+
+            } catch (error) {
+                console.error('載入數據時出錯:', error);
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>無法載入數據：${error.message}</p>
+                        <p style="margin-top: 10px; font-size: 0.9em;">請檢查年份輸入是否正確，或稍後再試。</p>
+                    </div>
+                `;
+                showNotification('載入數據時出錯，請檢查年份輸入是否正確', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-search"></i> 查詢學位空缺';
+            }
+        }
+
+        function parseCSVData(csvText) {
+            try {
+                const lines = csvText.split('\n').filter(line => line.trim());
+                if (lines.length < 2) {
+                    throw new Error('CSV 文件中沒有足夠的數據');
+                }
+
+                // 解析 CSV 標題行
+                const headers = lines[0].split(',').map(h => h.trim());
+
+                // 檢查必需的欄位
+                const requiredFields = ['District', 'SCRN', 'School English Name', 'School Chinese Name',
+                    'K1 Vacancy Status', 'K2 Vacancy Status', 'K3 Vacancy Status', 'As At Date'];
+
+                const missingFields = requiredFields.filter(field => !headers.includes(field));
+                if (missingFields.length > 0) {
+                    throw new Error(`CSV 文件缺少必需的欄位: ${missingFields.join(', ')}`);
+                }
+
+                // 解析數據行
+                allSchools = [];
+                let k1VacantCount = 0;
+                let k2VacantCount = 0;
+                let k3VacantCount = 0;
+                const districtsSet = new Set();
+
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i];
+                    const values = parseCSVLine(line);
+
+                    if (values.length >= headers.length) {
+                        const school = {};
+                        headers.forEach((header, index) => {
+                            school[header] = values[index] ? values[index].trim() : '';
+                        });
+
+                        // 統計空缺數量
+                        if (school['K1 Vacancy Status'] === 'Y') k1VacantCount++;
+                        if (school['K2 Vacancy Status'] === 'Y') k2VacantCount++;
+                        if (school['K3 Vacancy Status'] === 'Y') k3VacantCount++;
+
+                        // 收集地區
+                        if (school['District']) districtsSet.add(school['District']);
+
+                        allSchools.push(school);
+
+                        // 更新最後更新日期
+                        if (school['As At Date'] && !currentDataDate) {
+                            currentDataDate = school['As At Date'];
+                        }
+                    }
+                }
+
+                if (allSchools.length === 0) {
+                    throw new Error('CSV 文件中沒有找到有效的學校數據');
+                }
+
+                // 更新統計信息
+                updateStatistics(allSchools.length, districtsSet.size, k1VacantCount, k2VacantCount, k3VacantCount);
+
+                // 更新最後更新日期
+                if (currentDataDate) {
+                    document.getElementById('last-update-date').textContent = currentDataDate;
+                }
+
+                // 更新學校列表
+                updateSchoolsList(allSchools);
+
+                showNotification(`成功載入 ${allSchools.length} 間幼稚園的學位空缺資料`, 'success');
+
+            } catch (error) {
+                console.error('解析 CSV 數據時出錯:', error);
+                const container = document.getElementById('accordion-container');
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>解析數據時出錯：${error.message}</p>
+                    </div>
+                `;
+                showNotification('解析數據時出錯，請稍後再試', 'error');
+            }
+        }
+
+        // 解析 CSV 行，處理逗號在引號內的情況
+        function parseCSVLine(line) {
+            const result = [];
+            let inQuotes = false;
+            let currentField = '';
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"' && !inQuotes) {
+                    inQuotes = true;
+                } else if (char === '"' && inQuotes && nextChar === '"') {
+                    currentField += '"';
+                    i++; // 跳過下一個引號
+                } else if (char === '"' && inQuotes) {
+                    inQuotes = false;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(currentField);
+                    currentField = '';
+                } else {
+                    currentField += char;
+                }
+            }
+
+            result.push(currentField);
+            return result;
+        }
+
+        function updateStatistics(totalSchools, totalDistricts, k1Vacant, k2Vacant, k3Vacant) {
+            document.getElementById('total-schools').textContent = totalSchools.toLocaleString();
+            document.getElementById('total-districts').textContent = totalDistricts.toLocaleString();
+            document.getElementById('total-k1-vacancy').textContent = k1Vacant.toLocaleString();
+            document.getElementById('total-k2-vacancy').textContent = k2Vacant.toLocaleString();
+            document.getElementById('total-k3-vacancy').textContent = k3Vacant.toLocaleString();
+        }
+
+        function updateSchoolsList(schools) {
+            const container = document.getElementById('accordion-container');
+
+            if (schools.length === 0) {
+                container.innerHTML = '<div class="no-data"><i class="fas fa-school"></i><p>未找到幼稚園資料</p></div>';
+                return;
+            }
+
+            // 按地區分組
+            const groupedByDistrict = {};
+            schools.forEach(school => {
+                const district = school['District'] || '未分類';
+                if (!groupedByDistrict[district]) {
+                    groupedByDistrict[district] = [];
+                }
+                groupedByDistrict[district].push(school);
+            });
+
+            // 對地區進行排序
+            const sortedDistricts = Object.keys(groupedByDistrict).sort();
+
+            // 生成手風琴HTML - 按地區分組
+            let accordionHTML = '';
+            sortedDistricts.forEach((district, districtIndex) => {
+                const schoolsInDistrict = groupedByDistrict[district];
+
+                // 對每個地區內的學校按中文名稱排序
+                schoolsInDistrict.sort((a, b) => {
+                    const nameA = (a['School Chinese Name'] || '').toLowerCase();
+                    const nameB = (b['School Chinese Name'] || '').toLowerCase();
+                    return nameA.localeCompare(nameB);
+                });
+
+                accordionHTML += `
+            <div class="location-group" data-district="${district}">
+                <div class="facility-item">
+                    <div class="facility-header location-header" onclick="toggleLocationGroup('${district.replace(/'/g, "\\'")}')">
+                        <div>
+                            <i class="fas fa-map-marker-alt" style="margin-right: 8px;"></i>
+                            <span>${districtIndex + 1}. ${district} (${schoolsInDistrict.length}間學校)</span>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div id="location-${district.replace(/[^a-zA-Z0-9]/g, '-')}" class="location-content" style="display:none">
+                `;
+
+                schoolsInDistrict.forEach((school, schoolIndex) => {
+                    const schoolId = `school-${district.replace(/[^a-zA-Z0-9]/g, '-')}-${schoolIndex}`;
+                    const scrn = school['SCRN'] || '';
+                    const englishName = school['School English Name'] || '';
+                    const chineseName = school['School Chinese Name'] || '';
+                    const k1Status = school['K1 Vacancy Status'] || '';
+                    const k2Status = school['K2 Vacancy Status'] || '';
+                    const k3Status = school['K3 Vacancy Status'] || '';
+                    const asAtDate = school['As At Date'] || '';
+
+                    // 判斷空缺狀態徽章
+                    const getVacancyBadge = (status) => {
+                        if (status === 'Y') return '<span class="vacancy-badge vacancy-yes">有空缺</span>';
+                        if (status === 'N') return '<span class="vacancy-badge vacancy-no">已滿額</span>';
+                        return '<span class="vacancy-badge vacancy-unknown">未提供</span>';
+                    };
+
+                    accordionHTML += `
+                    <div class="facility-item" id="${schoolId}" style="margin-bottom: 10px;">
+                        <div class="facility-header" onclick="toggleFacility('${schoolId}')">
+                            <div>
+                                <i class="fas fa-school facility-icon"></i>
+                                <span>${chineseName}</span>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div id="content-${schoolId}" class="facility-content" style="display: none;">
+                            <div class="info-row">
+                                <div class="info-label">學校註冊編號</div>
+                                <div class="info-value">${scrn}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">地區</div>
+                                <div class="info-value">${district}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">學校中文名稱</div>
+                                <div class="info-value">${chineseName}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">學校英文名稱</div>
+                                <div class="info-value">${englishName}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">K1 學位空缺</div>
+                                <div class="info-value">${getVacancyBadge(k1Status)}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">K2 學位空缺</div>
+                                <div class="info-value">${getVacancyBadge(k2Status)}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">K3 學位空缺</div>
+                                <div class="info-value">${getVacancyBadge(k3Status)}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">資料更新日期</div>
+                                <div class="info-value">${asAtDate || '未提供'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                });
+
+                accordionHTML += `
+                    </div>
+                </div>
+            </div>
+        `;
+            });
+
+            container.innerHTML = accordionHTML;
+        }
+
+        function toggleLocationGroup(locationId) {
+            const safeId = locationId.replace(/[^a-zA-Z0-9]/g, '-');
+            const locationContent = document.getElementById(`location-${safeId}`);
+            const header = locationContent.previousElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+
+            if (locationContent.style.display === 'none') {
+                locationContent.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                locationContent.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function toggleFacility(schoolId) {
+            const content = document.getElementById(`content-${schoolId}`);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+
+            if (content.style.display === 'none') {
+                header.classList.add("active");
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                header.classList.remove("active");
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // 移除現有通知
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // 創建通知元素
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+
+            // 設定通知樣式
+            Object.assign(notification.style, {
+                position: 'fixed',
+                bottom: '20px',
+                right: '20px',
+                backgroundColor: type === 'success' ? '#10b981' : '#3b82f6',
+                color: 'white',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                zIndex: '3000',
+                animation: 'slideIn 0.3s ease-out'
+            });
+
+            // 添加到文檔
+            document.body.appendChild(notification);
+
+            // 添加CSS動畫
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // 3秒後移除
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // 首次加載顯示使用說明
+        if (!localStorage.getItem('kindergartenTutorialShown')) {
+            setTimeout(() => {
+                alert("歡迎使用 K1-K3 學位空缺查詢系統！\n\n• 輸入起始年份和結束年份查詢學位空缺資訊\n• 按地區分組顯示幼稚園資訊\n• 點擊學校名稱查看詳細學位空缺情況\n• 資料來源: 香港教育局");
+                localStorage.setItem('kindergartenTutorialShown', 'true');
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>
